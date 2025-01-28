@@ -11,10 +11,10 @@ libsimple {
     ; byte offset from library load address
     ; aka slot in jump table (this is not the fixup location)
     const uword lib_table = $00
-    const uword start_      = lib_table + 0 * 3 ; $xx16
-    const uword link_       = lib_table + 1 * 3 ; $xx16
-    const uword name_       = lib_table + 2 * 3 ; $xx19
-    const uword multiply_   = lib_table + 3 * 3 ; $xx1c
+    const uword start_      = lib_table + 0 * 3 ; $xx00
+    const uword link_       = lib_table + 1 * 3 ; $xx03
+    const uword name_       = lib_table + 2 * 3 ; $xx06
+    const uword multiply_   = lib_table + 3 * 3 ; $xx09
 
     ; unload (free) resources from load
     ; (only if allocated somehow)

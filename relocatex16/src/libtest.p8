@@ -11,11 +11,11 @@ libtest {
     ; byte offset from library load address
     ; aka slot in jump table (this is not the fixup location)
     const uword lib_table = $00
-    const uword start_      = lib_table + 0 * 3 ; $xx14
-    const uword link_       = lib_table + 1 * 3 ; $xx17
-    const uword print_      = lib_table + 2 * 3 ; $xx1a
-    const uword print_ub_   = lib_table + 3 * 3 ; $xx1d
-    const uword print_uw_   = lib_table + 4 * 3 ; $xx20
+    const uword start_      = lib_table + 0 * 3 ; $xx00
+    const uword link_       = lib_table + 1 * 3 ; $xx03
+    const uword print_      = lib_table + 2 * 3 ; $xx06
+    const uword print_ub_   = lib_table + 3 * 3 ; $xx09
+    const uword print_uw_   = lib_table + 4 * 3 ; $xx0c
 
     ; unload (free) resources from load
     ; (only if allocated somehow)
