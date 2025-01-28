@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+"""
+Sanity check relocation / library for page sizes
+and program file sizes.
+"""
+
+import argparse
+import re
+import sys
+
+# debug message flag
+debug = False
+
+# global logging flag.
+verbose = False
+
+
+def debuglog(message, end="\n"):
+    if debug:
+        print(message, end=end)
+
+
+def logger(message, end="\n"):
+    if verbose:
+        print(message, end=end)
+
+
+def getasmsize(filename):
+    p8_start = 0
+    p8_end = 0
+
+    try:
+        with open(filename, "r") as asmf:
+            asmlist = asmf.read()
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
+
+    match = re.search(r"\.([A-Fa-f0-9]+)\s+prog8_program_start", asmlist)
+    if match:
+        p8_start = int(match.groups(0)[0], 16)
+    match = re.search(r"\.([A-Fa-f0-9]+)\s+prog8_program_end", asmlist)
+    if match:
+        p8_end = int(match.groups(0)[0], 16)
+    if p8_start > 0 and p8_end > 0:
+        return round((p8_end - p8_start) / 256 + 0.5)
+    return 0
+
+
+def getlibsize(filename):
+    p8_lib_size = 0
+
+    try:
+        with open(filename, "r") as libf:
+            liblist = libf.read()
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
+
+    match = re.search(r".*const\s+ubyte\s+size\s+=\s+([0-9]+)", liblist)
+    if match:
+        p8_lib_size = int(match.groups(0)[0])
+    return p8_lib_size
+
+
+def main():
+    global debug
+    global verbose
+
+    parser = argparse.ArgumentParser(
+        prog="relcheck",
+        description="Sanity checks Prog8 relocations.",
+        epilog="Prints any issues encountered.",
+    )
+
+    parser.add_argument("program")
+    parser.add_argument(
+        "--asmlist", required=True, help="Assembler listing for this relocatable."
+    )
+    parser.add_argument(
+        "--library", required=True, help="Client library p8 file for this relocatable."
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Show all found byte details."
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Show relocation details."
+    )
+
+    args = parser.parse_args()
+    debug = args.debug
+    verbose = args.verbose or args.debug
+
+    try:
+        with open(args.program, "rb") as program:
+            data = program.read()
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
+
+    pages = round(len(data) / 256 + 0.5)
+    pages_asm = getasmsize(args.asmlist)
+    pages_lib = getlibsize(args.library)
+
+    try:
+        with open(args.library, "r") as libf:
+            library = libf.read()
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
+
+    if pages == pages_asm == pages_lib:
+        logger(f"INFO: library size matches.")
+        logger(f"pages: {pages}")
+        logger(f"pages_asm: {pages_asm}")
+        logger(f"pages_lib: {pages_lib}")
+        sys.exit(0)
+    else:
+        print(f"ERROR: library size mismatch, crash likely.", file=sys.stderr)
+        print(f"pages: {pages}", file=sys.stderr)
+        print(f"pages_asm: {pages_asm}", file=sys.stderr)
+        print(f"pages_lib: {pages_lib}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

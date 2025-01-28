@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+
+import argparse
+import re
+import sys
+
+# debug message flag
+debug = False
+
+# global logging flag.
+verbose = False
+
+
+def debuglog(message, end="\n"):
+    if debug:
+        print(message, end=end)
+
+
+def logger(message, end="\n"):
+    if verbose:
+        print(message, end=end)
+
+
+def prtrange(range_list):
+    if debug:
+        msg = "DEBUG: "
+    else:
+        msg = "VERBOSE: "
+    logger(msg, end="")
+    for item in range_list:
+        logger(f"{item:02x} ", end="")
+    logger("")
+
+
+def findbyte(prog, pages):
+    # we will measure how often a byte appears
+    # setup a 256 element list to represent
+    # all possible bytes and set their count to 0
+    bytes_list = []
+    for index in range(256):
+        bytes_list.append(0)
+
+    # for each occurrence of a byte (used as an index)
+    # increment its count
+    for byte in prog:
+        bytes_list[byte] = bytes_list[byte] + 1
+
+    # find ranges of consecutive unused bytes
+    # the count will be zero if we have never
+    # seen the byte
+    ranges_list = []
+    temp_list = []
+    last_index = 0
+    consecutive = 0
+
+    # find ranges of consecutive unused bytes
+    # use a range as we are interested in
+    # the index (0..255) when the count is
+    # zero, not the count itself
+    for index in range(256):
+        if bytes_list[index] == 0:
+            # check if not consecutive immediately as we might be ending
+            # one range and starting a new one.
+            if index != (last_index + 1):
+                # reset consecutive counter to 1
+                # (the current byte index might be start of a new range)
+                consecutive = 1
+                # if we had found consecutive bytes save them
+                if len(temp_list) > 0:
+                    ranges_list.append(temp_list)
+                # reset temp_list
+                temp_list = []
+                temp_list.append(index)
+
+            # if consecutive increment and keep it
+            if index == (last_index + 1):
+                consecutive += 1
+                temp_list.append(index)
+
+            # set last seen zero byte index to current zero byte index.
+            last_index = index
+
+    # if we had found consecutive bytes at the very end, save them
+    if len(temp_list) > 0:
+        ranges_list.append(temp_list)
+
+    if debug:
+        for group in ranges_list[::-1]:
+            prtrange(group)
+        debuglog("")
+
+    # loop through the list of ranges
+    # starting at the top for convenience
+    # find the first range == pages
+    for group in ranges_list[::-1]:
+        if len(group) >= pages:
+            prtrange(group)
+            return group[0]
+
+    # did not find a byte range
+    return 0
+
+
+def main():
+    global debug
+    global verbose
+
+    parser = argparse.ArgumentParser(
+        prog="reloc8",
+        description="Analyzes Prog8 generated 6502 binaries for relocation.",
+        epilog="Prints the relocation byte to use or $00 if none found.",
+    )
+
+    parser.add_argument("program")
+    parser.add_argument(
+        "-a", "--auto", help="Auto update %address in Prog8 file to new file."
+    )
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Show all found byte details."
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Show relocation details."
+    )
+
+    args = parser.parse_args()
+    debug = args.debug
+    verbose = args.verbose or args.debug
+
+    try:
+        with open(args.program, "rb") as program:
+            data = program.read()
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
+
+    pages = round(len(data) / 256 + 0.5)
+
+    reloc_byte = findbyte(data, pages)
+
+    # did not find a byte / range
+    if reloc_byte == 0:
+        sys.exit(1)
+
+    # should perform actual relocation here...
+    if args.auto:
+        logger(f"args.auto: {args.auto}")
+        file_ext = args.auto.split(".")[-1]
+        filename = args.auto.split("." + file_ext)[0]
+        file_reloc = f"{filename}_reloc.{file_ext}"
+        logger(f"filename: {filename}")
+        logger(f"file_ext: {file_ext}")
+        logger(f"file_reloc: {file_reloc}")
+        try:
+            with open(args.auto, "r") as inf:
+                input_file = inf.readlines()
+
+            with open(file_reloc, "w") as outf:
+                for line in input_file:
+                    if re.match(r"\%address\s+\$1000", line):
+                        logger("found 1st:", line)
+                        line = re.sub(
+                            r"(\%address\s+\$)(10)(.*)",
+                            r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
+                            line,
+                        )
+                        logger("fixed 1st:", line)
+                    elif re.match(r"main\s+\$1014", line):
+                        logger("found 2nd:", line)
+                        line = re.sub(
+                            r"(main\s+\$)(10)(.*)",
+                            r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
+                            line,
+                        )
+                        logger("fixed 2nd:", line)
+                    outf.write(line)
+        except FileNotFoundError as error:
+            print(error, file=sys.stderr)
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
