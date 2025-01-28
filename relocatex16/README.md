@@ -4,10 +4,23 @@ This demonstrates a simple technique from [C64 OS](https://c64os.com/post/reloca
 
 This implementation is in Prog8 for the Commander X16.
 
+## Building the demo
+
+### Linux or macOS
+
+First you need to run `make` to build the example. This requires `make` and `prog8c` to be in your path.
+Then you can run `make emu` to launch the emulator using the Host FS.
+
+### Windows
+First you need to run `make -f Makefile.win` to build the example.  This requires `make` and `prog8c` to be in your path.
+
+Then you can run `make emu` or `make -f Makefile.win emu` to launch the emulator using the Host FS.
+
 ## Running the demo
 
-First you need to run `make` (Linux/macOS) or `make -f Makefile.win` on Windows.
-Then you can run `make emu` or `make -f Makefile.win emu` to launch the emulator using the Host FS.  From there you run `LOAD "MAIN.PRG"` and `RUN` like a normal program.
+Run the emulator as above or copy the contents of the `build` directory to an SD card to use on real hardware.
+
+From there you run `LOAD "MAIN.PRG"` and `RUN` like a normal program.
 
 Here is a screenshot of loading / running: ![loading](images/loading.png)
 
