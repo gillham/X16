@@ -157,21 +157,13 @@ def main():
             with open(file_reloc, "w") as outf:
                 for line in input_file:
                     if re.match(r"\%address\s+\$1000", line):
-                        logger("found 1st:", line)
+                        logger("found:", line)
                         line = re.sub(
                             r"(\%address\s+\$)(10)(.*)",
                             r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
                             line,
                         )
-                        logger("fixed 1st:", line)
-                    elif re.match(r"main\s+\$1014", line):
-                        logger("found 2nd:", line)
-                        line = re.sub(
-                            r"(main\s+\$)(10)(.*)",
-                            r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
-                            line,
-                        )
-                        logger("fixed 2nd:", line)
+                        logger("fixed:", line)
                     outf.write(line)
         except FileNotFoundError as error:
             print(error, file=sys.stderr)
