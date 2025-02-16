@@ -1,0 +1,8 @@
+# build directory
+build/
+# media (vice screen recording)
+media/
+# cx16os working tree
+OS/
+# Disk images / files for testing.
+test/
