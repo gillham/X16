@@ -8,11 +8,11 @@ This implementation is in Prog8 for the Commander X16.
 
 ### Linux or macOS
 
-First you need to run `make` to build the example. This requires `make` and `prog8c` to be in your path.
+First you need to run `make` to build the example. This requires `make`, `prog8c`, and `python` to be in your path.
 Then you can run `make emu` to launch the emulator using the Host FS.
 
 ### Windows
-First you need to run `make -f Makefile.win` to build the example.  This requires `make` and `prog8c` to be in your path.
+First you need to run `make -f Makefile.win` to build the example. This requires `make`, `prog8c`, and `python` to be in your path.
 
 Then you can run `make -f Makefile.win emu` to launch the emulator using the Host FS.
 
