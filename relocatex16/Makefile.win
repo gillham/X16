@@ -19,15 +19,15 @@ build\\%.prg : src\\%.p8
 	$(PCC) $(PCCARGS) $< 
 
 src\\%_reloc.p8: src\\%.p8 build\\%.prg
-	bin\\reloc8 -v build\\$(basename $(notdir $<)).bin -a $<
+	python bin\\reloc8 -v build\\$(basename $(notdir $<)).bin -a $<
 
 build\\%.r: src\\%_reloc.p8
 	$(PCC) $(PCCARGS) $< 
 	copy build\\$(basename $(notdir $<)).bin $@
 
 relcheck: build\\simple.lib.r build\\test.lib.r
-	bin\\relcheck build\\simple.lib.r --asmlist build\\simple.lib_reloc.list --library src\\libsimple.p8
-	bin\\relcheck build\\test.lib.r --asmlist build\\test.lib_reloc.list --library src\\libtest.p8
+	python bin\\relcheck build\\simple.lib.r --asmlist build\\simple.lib_reloc.list --library src\\libsimple.p8
+	python bin\\relcheck build\\test.lib.r --asmlist build\\test.lib_reloc.list --library src\\libtest.p8
 clean:
 	del /q build\\*
 
