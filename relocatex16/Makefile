@@ -3,7 +3,7 @@
 #
 
 PCC=prog8c
-PCCARGS=-asmlist -sourcelines -target cx16 -out build/
+PCCARGS=-asmlist -target cx16 -out build/
 
 PROGS	= build/simple.lib.r build/test.lib.r build/main.prg
 
