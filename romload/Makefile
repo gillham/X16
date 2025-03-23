@@ -4,13 +4,15 @@
 
 # Cross-platform removal command
 ifeq ($(OS),Windows_NT)
-    CLEAN = del /Q build/* 
+    CLEAN = del /Q build\* 
     RM = del /Q
     MD = mkdir
+    ROMFILE = python ..\bin\romfile.py
 else
     CLEAN = rm -f build/*
     RM = rm -f
     MD = mkdir -p
+    ROMFILE = ../bin/romfile.py
 endif
 
 PCC=prog8c
@@ -30,7 +32,7 @@ build/%.prg : src/%.p8
 	$(PCC) $(PCCARGS) $< 
 
 romfile:
-	cd build && ../bin/romfile.py
+	cd build && $(ROMFILE)
 
 clean:
 	$(CLEAN) romfile.bin
