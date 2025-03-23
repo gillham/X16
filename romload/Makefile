@@ -35,7 +35,7 @@ romfile:
 	cd build && $(ROMFILE)
 
 clean:
-	$(CLEAN) romfile.bin
+	$(CLEAN)
 
 emu:
 	@echo ""
