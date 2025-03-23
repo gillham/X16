@@ -4,9 +4,11 @@
 
 # Cross-platform removal command
 ifeq ($(OS),Windows_NT)
+    CLEAN = del /Q build/* 
     RM = del /Q
     MD = mkdir
 else
+    CLEAN = rm -f build/*
     RM = rm -f
     MD = mkdir -p
 endif
@@ -31,7 +33,7 @@ romfile:
 	cd build && ../bin/romfile.py
 
 clean:
-	$(RM) build/* romfile.bin
+	$(CLEAN) romfile.bin
 
 emu:
 	@echo ""
