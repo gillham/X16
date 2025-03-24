@@ -13,7 +13,7 @@ lib {
         uword i = 0
         bool rl_subtract = true
 
-        uword endaddress = diskio.load_raw(rl_fname, rl_buf)
+        uword endaddress = diskio.loadlib(rl_fname, rl_buf)
         if endaddress == 0 {
             return false
         }
