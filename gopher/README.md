@@ -46,6 +46,10 @@ Some known not to work sites:
  - sdf.org (some smaller menus, but some massive)
  - gopherpedia.com (larger menu and text files)
 
+ ## Running your own gopher server
+
+ You can easily run your own gopher server using [PyGopherd](https://github.com/michael-lazar/pygopherd)
+
 # Building
 
 Gopher is written in Prog8.  Currently it is EXTREMELY ROUGH, but does work for me.
