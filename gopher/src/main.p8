@@ -17,9 +17,6 @@ main {
     uword buf = memory("receive", 1 * 256, 256)
     uword url = memory("url", 1 * 256, 256)
 
-    ; timeout for polling/receiving data
-    ubyte poll_count = 0
-
     ; colors for gopher UI
     const ubyte colors_normal = $b3
     const ubyte colors_selected = $d0
@@ -104,17 +101,13 @@ main {
                         txt.row(30)
                         txt.print(" Restart here... ")
                         txt.nl()
-                        sys.wait(120)
+                        sys.wait(120)   ; reload status message
                         go_back(true)   ; reloads current location
                     }
                     else -> {
                         ; always push to stack
                         ; so back works
                         idx = stack.push()
-                        ;txt.print("stack idx: ")
-                        ;txt.print_ubhex(idx, false)
-                        ;txt.nl()
-                        ;sys.wait(120)
                         stack.set_type(idx, gopher.types[choice])
                         stack.set_selector(idx, gopher.selectors[choice])
                         stack.set_server(idx, gopher.servers[choice])
@@ -165,13 +158,13 @@ main {
             sys.clear_irqd()
             if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) as bool
                 return true
-            sys.wait(10)
+            sys.wait(10) ; poll_open timeout
         }
         ; debug
         txt.nl()
         txt.print("   socket failed to open...")
         txt.nl()
-        sys.wait(30)
+        sys.wait(30) ; poll_open debug error message
         return false
     }
 
@@ -225,12 +218,6 @@ main {
         ; just peek it since it will be our current
         idx = stack.top()
 
-        ; debug
-        txt.nl()
-;        txt.print("go_back stack idx: ")
-;        txt.print_ubhex(idx, false)
-;        txt.nl()
-;        sys.wait(120)
         ;
         ; handle going to previous menu
         ; pop details from stack
@@ -316,39 +303,25 @@ main {
 
     sub getdata() {
         ; poll data loop (until server disconnects)
-        main.poll_count = 0
         repeat {
             sys.set_irqd()
             net.net_poll()
             sys.clear_irqd()
-            ;txt.print_uwhex(net.poll.socket[0], true)
-            ;txt.nl()
+
+            ; check connected state first as
+            ; socket status won't be valid
+            ; after recv_data()
+            if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) == 0 and (net.poll.socket[0] & net.SOCK_STAT_HAS_DATA) == 0{
+                txt.chrout('X')
+                break
+            }
             if (net.poll.socket[0] & net.SOCK_STAT_HAS_DATA) != 0 {
                 ; socket has data!
                 recv_data()
                 txt.chrout('D')
-                poll_count = 0
                 continue
             } else {
-                ; slight delay if no data
-                sys.wait(10)
-                ; count polls with no data
-                poll_count++
-                ; TODO: figure out best way to detect disconnect
-                if poll_count > 6 {
-                    send_byte($00)
-                    txt.chrout('N')
-                }
-                ; something bad happened. timeout eventually
-                if poll_count > 20
-                    break
-            }
-            if poll_count > 7 {
-                if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) == 0 {
-                    txt.chrout('X')
-                    close_socket()
-                    break
-                }
+                send_byte($00)
             }
         }
     }

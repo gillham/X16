@@ -214,14 +214,6 @@ gopher {
         ; eat the $0a, should be at next line now
         ;void input.next()
         char = input.next()
-
-        ; debug
-;        txt.chrout(' ')
-;        txt.print_ubhex(char, false)
-;        txt.chrout(' ')
-;        txt.print_ubhex(input.peekc(), false)
-;        txt.chrout(' ')
-;        sys.wait(120)
         return
     }
 
@@ -416,9 +408,7 @@ gopher {
                     txt.print("ERROR retrieving file")
                     txt.nl()
                 } else {
-                    ; view file..
-                    ; we should view this now.
-                    sys.wait(120)
+                    ; view text file..
                     txt.clear_screen()
                     showtext()
                 }
