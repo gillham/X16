@@ -6,7 +6,7 @@
 
 input {
     %option ignore_unused
-    uword buf = memory("inputbuf", 10000, 256)
+    uword buf = memory("inputbuf", 20000, 256)
     uword @nozp pos = $0000
     uword @nozp cnt = $0000
 

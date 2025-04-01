@@ -7,6 +7,7 @@
 ;%option force_output
 %encoding iso
 
+%import socket
 
 gopher {
     ubyte selected_line = 0
@@ -328,7 +329,7 @@ gopher {
 ;        txt.print_ubhex(size, false)
 ;        txt.nl()
 
-        main.get_host(site, size)
+        socket.gethostbyname(site, size)
 ;        txt.column(5)
 ;        txt.print("Opening socket...")
 ;        txt.nl()
@@ -348,12 +349,12 @@ gopher {
 ;        txt.print_uwhex(port, false)
 ;        txt.nl()
 
-        main.open_socket(port)
+        socket.open(0, port)
 ;        txt.column(5)
 ;        txt.print("Polling for socket open...")
 ;        txt.nl()
 
-        if not main.poll_open() {
+        if not socket.poll_open(0) {
 ;            txt.column(5)
 ;            txt.print("Socket failed to open...returning error")
 ;            txt.nl()
@@ -372,9 +373,9 @@ gopher {
 ;        txt.print(selector)
 ;        txt.nl()
         ; send gopher request
-        main.send_string(selector)
-        main.send_byte($0d)
-        main.send_byte($0a)
+        void socket.send_string(0, selector)
+        void socket.send_byte(0, $0d)
+        void socket.send_byte(0, $0a)
 ;        txt.column(5)
 ;        txt.print_uwhex(net.poll.socket[0], true)
 ;        txt.nl()

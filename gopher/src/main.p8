@@ -1,6 +1,7 @@
 ; Prog8 options
 %encoding iso
 %zeropage basicsafe
+%option no_sysinit
 
 ; Prog8 libraries
 %import conv
@@ -11,10 +12,10 @@
 %import gopher
 %import input
 %import libnet
+%import socket
 %import stack
 
 main {
-    uword buf = memory("receive", 1 * 256, 256)
     uword url = memory("url", 1 * 256, 256)
 
     ; colors for gopher UI
@@ -31,17 +32,33 @@ main {
     ; stack index
     ubyte idx
 
+    ubyte screen_height
+    ubyte screen_mode
+    ubyte screen_width
+
     sub start() {
+        screen_mode, screen_width, screen_height = cx16.get_screen_mode()
         ; init screen/colors
-        cx16.set_screen_mode(0)
+        ;cx16.set_screen_mode(0)
         ;cx16.set_screen_mode(8)
         txt.lowercase()
         txt.iso()
         txt.color2(colors_normal & 15, colors_normal>>4)
         txt.clear_screen()
 
+        ; debug
         txt.column(5)
-        txt.row(1)
+        txt.print("Screen width: ")
+        txt.print_ub(screen_width)
+        txt.nl()
+        txt.column(5)
+        txt.print("Screen height: ")
+        txt.print_ub(screen_height)
+        txt.nl()
+
+
+        txt.column(5)
+        txt.row(3)
         txt.print("What site? ")
         void txt.input_chars(url)
         txt.nl()
@@ -119,6 +136,8 @@ main {
                     }
                  }
             }
+            ; cleanup
+            socket.close(0)
 
         } else {
             txt.print("Network library load failed.")
@@ -126,87 +145,6 @@ main {
             txt.print("Try: LOAD\"NET.BIN\" manually.")
             txt.nl()
         }
-    }
-
-    sub close_socket() {
-        net.close.socket = 0
-        net.net_close()
-    }
-
-    sub open_socket(uword port) {
-        ; IPv4
-        net.open.ip_ty = net.IP_V4
-;        net.open.ip[0] = 192
-;        net.open.ip[1] = 168
-;        net.open.ip[2] = 70
-;        net.open.ip[3] = 10
-        net.open.socket_arg0 = lsb(port)
-        net.open.socket_arg1 = msb(port)
-        ; socket = 0?
-        net.open.socket = 0
-        ; tcp socket
-        net.open.socket_ty = net.SOCK_TCP
-        net.net_open()
-    }
-
-    sub poll_open() -> bool {
-        ; poll for socket open for 10 seconds
-        ; return as soon as connected
-        repeat 60 {
-            sys.set_irqd()
-            net.net_poll()
-            sys.clear_irqd()
-            if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) as bool
-                return true
-            sys.wait(10) ; poll_open timeout
-        }
-        ; debug
-        txt.nl()
-        txt.print("   socket failed to open...")
-        txt.nl()
-        sys.wait(30) ; poll_open debug error message
-        return false
-    }
-
-    ;
-    ; this should eventually receive directly into
-    ; input.buf and add recv_sz to input.cnt
-    ;
-    sub recv_data() {
-        ubyte i
-        net.recv.socket = 0
-        net.recv.buf_sz = 255
-        net.recv.buf_sz = 255
-        net.recv.buf = buf
-        sys.set_irqd()
-        net.net_recv()
-        sys.clear_irqd()
-        if net.recv.recv_sz == 0 {
-            return
-        }
-        for i in 0 to net.recv.recv_sz-1 {
-            input.add(buf[i])
-        }
-    }
-
-    sub send_byte(ubyte data) {
-        net.send.socket = 0
-        net.send.buf_sz = 1
-        net.send.buf = &data
-        net.net_send()
-    }
-
-    sub send_string(uword data) {
-        net.send.socket = 0
-        net.send.buf_sz = strings.length(data)
-        net.send.buf = data
-        net.net_send()
-    }
-
-    sub get_host(uword name, ubyte size) {
-        net.gethostbyname.buf = name
-        net.gethostbyname.buf_sz = size
-        net.net_gethostbyname()
     }
 
     sub go_back(bool reload) {
@@ -310,20 +248,21 @@ main {
 
             ; check connected state first as
             ; socket status won't be valid
-            ; after recv_data()
-            if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) == 0 and (net.poll.socket[0] & net.SOCK_STAT_HAS_DATA) == 0{
-                txt.chrout('X')
-                break
-            }
-            if (net.poll.socket[0] & net.SOCK_STAT_HAS_DATA) != 0 {
-                ; socket has data!
-                recv_data()
-                txt.chrout('D')
-                continue
+            ; after socket.recv()
+            if net.poll.socket[0] & net.SOCK_STAT_HAS_DATA == 0 {
+                ; no data & disconnected means we are done here..
+                if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) == 0 {
+                    txt.chrout('X')
+                    break
+                }
+                ; send null for now to detect socket disconnect
+                ; fixed in next firmware.  cleanup eventually
+                void socket.send_byte(0, $00)
+                txt.chrout('N')
             } else {
-                send_byte($00)
+                input.cnt += socket.recv(0, 255, input.buf + input.cnt)
+                txt.chrout('D')
             }
         }
     }
-
 }

@@ -18,16 +18,31 @@ lib {
         uword i = 0
         bool rl_subtract = true
 
+        txt.print("before loading...")
+        txt.print(rl_fname)
+        txt.nl()
         uword endaddress = diskio.loadlib(rl_fname, rl_buf)
         if endaddress == 0 {
             return false
         }
+
+        txt.print("after loading...")
+        txt.print_uwhex(rl_buf, true)
+        txt.print("...")
+        txt.print_uwhex(endaddress, true)
+        txt.nl()
 
         ; do relocation fixup..
         ubyte libpg = msb(rl_buf)
         ubyte reloc = @(rl_buf+RELOC_BYTE)
         ubyte reloc_min = reloc-1
         ubyte reloc_max = reloc+rl_pages
+
+        txt.print("relocating...")
+        txt.print_ubhex(reloc, true)
+        txt.print(" -> ")
+        txt.print_ubhex(libpg, true)
+        txt.nl()
 
         if libpg > reloc {
             rl_subtract = false
@@ -47,6 +62,9 @@ lib {
             }
         }
 
+        txt.print("relocation complete.")
+        txt.nl()
+
         ; call first function (start) in lib
         if init {
             void call(rl_buf+JMP_SLOT0)
@@ -57,13 +75,24 @@ lib {
 
     ; C64/X16 bank loading.
     sub loadbank(uword rl_buf, str rl_fname, bool init) -> bool {
+        txt.print("before loading...")
+        txt.print(rl_fname)
+        txt.nl()
         uword endaddress = diskio.loadlib(rl_fname, rl_buf)
         if endaddress == 0 {
             return false
         }
 
+        txt.print("after loading...")
+        txt.print_uwhex(rl_buf, true)
+        txt.print("...")
+        txt.print_uwhex(endaddress, true)
+        txt.nl()
+
         ; call first function (start) in lib
         if init {
+            txt.print("calling lib start()")
+            txt.nl()
             void call(rl_buf+JMP_SLOT0)
         }
 

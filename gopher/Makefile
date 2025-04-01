@@ -23,7 +23,7 @@ all: build $(PROGS)
 build:
 	$(MD) build
 
-build/main.prg: src/main.p8 src/libnet.p8 src/lib.p8 src/gopher.p8 src/input.p8 src/stack.p8
+build/main.prg: src/main.p8 src/libnet.p8 src/lib.p8 src/gopher.p8 src/input.p8 src/stack.p8 src/socket.p8
 	$(PCC) $(PCCARGS) $< 
 
 build/%.prg : src/%.p8

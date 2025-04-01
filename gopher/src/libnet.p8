@@ -1,6 +1,8 @@
 %import lib
 
 net {
+    %option ignore_unused
+
     const byte IP_V4 = 4
     const byte IP_V6 = 6
 
