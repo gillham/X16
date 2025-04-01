@@ -1,6 +1,6 @@
 ;
 ; Minimalist socket module
-; Use libnet which currently supports:
+; Uses libnet which currently supports:
 ;   - Calypso SPI NIC via net.bin $a000 driver
 ;     (see: https://codeberg.org/smrobtzz/x16-esp-fw/src/branch/main/x16/net/net.p8 )
 ;
