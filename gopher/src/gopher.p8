@@ -94,13 +94,6 @@ gopher {
         ; advance over null
         void input.next()
 
-;        txt.print("type: ")
-;        txt.chrout(types[lines])
-;        txt.chrout(' ')
-;        txt.print("user display: ")
-;        txt.print(displays[lines])
-;        txt.chrout(' ')
-
         ; save server selector string
         selectors[lines] = input.buf + input.pos
         do {
@@ -112,10 +105,6 @@ gopher {
         input.buf[input.pos] = $00
         ; advance over null
         void input.next()
-
-;        txt.print("selector: ")
-;        txt.print(selectors[lines])
-;        txt.chrout(' ')
 
         ; save server name
         servers[lines] = input.buf + input.pos
@@ -129,11 +118,6 @@ gopher {
         ; advance over null
         void input.next()
 
-;        txt.print("server: ")
-;        txt.print(servers[lines])
-;        txt.chrout(' ')
-
-
         ; save server port
         ports[lines] = input.buf + input.pos
         do {
@@ -146,9 +130,6 @@ gopher {
         input.buf[input.pos] = $00
         ; advance over null
         void input.next()
-
-;        txt.print("port: ")
-;        txt.print(ports[lines])
 
         ; if we hit end of line after port
         ; eat crlf and return
@@ -164,16 +145,13 @@ gopher {
             char = input.next()
             if char == '+' {
                 plus[lines] = true as ubyte
-                ;txt.print(iso:" Gopher+")
             }
             if input.eof()
                 break
-            ;txt.chrout(char)
         } until char == $0d and input.peekc() == $0a
 
         ; eat the $0a, should be at next line now
         void input.next()
-        ;txt.nl()
         return
 
     }
@@ -208,13 +186,8 @@ gopher {
                 break
         } until char == $0d and input.peekc() == $0a
 
-        ; debug
-;        txt.chrout(' ')
-;        txt.print_ubhex(char, false)
-
         ; eat the $0a, should be at next line now
-        ;void input.next()
-        char = input.next()
+        void input.next()
         return
     }
 
@@ -230,13 +203,13 @@ gopher {
                 'd'             -> {
                     main.dumpbuffer()
                     void txt.waitkey()
-                    txt.clear_screen()
+                    term.clear()
                     menudraw()
                 }
                 'D'             -> {
                     main.dumpbufferhex()
                     void txt.waitkey()
-                    txt.clear_screen()
+                    term.clear()
                     menudraw()
                 }
                 's'             -> {
@@ -317,100 +290,40 @@ gopher {
 
     ; make actual gopher request
     sub request(uword selector, uword site, ubyte size, uword port) -> bool {
-;        txt.column(5)
-;        txt.print("Looking up site name...")
-;        txt.nl()
-
-        ; debug
-;        txt.column(5)
-;        txt.print(site)
-;        txt.nl()
-;        txt.column(5)
-;        txt.print_ubhex(size, false)
-;        txt.nl()
-
         socket.gethostbyname(site, size)
-;        txt.column(5)
-;        txt.print("Opening socket...")
-;        txt.nl()
-
-        ; debug
-;        txt.column(5)
-;        txt.print_ubhex(net.open.ip[0], false)
-;        txt.chrout(' ')
-;        txt.print_ubhex(net.open.ip[1], false)
-;        txt.chrout(' ')
-;        txt.print_ubhex(net.open.ip[2], false)
-;        txt.chrout(' ')
-;        txt.print_ubhex(net.open.ip[3], false)
-;        txt.chrout(' ')
-;        txt.nl()
-;        txt.column(5)
-;        txt.print_uwhex(port, false)
-;        txt.nl()
-
         socket.open(0, port)
-;        txt.column(5)
-;        txt.print("Polling for socket open...")
-;        txt.nl()
 
         if not socket.poll_open(0) {
-;            txt.column(5)
-;            txt.print("Socket failed to open...returning error")
-;            txt.nl()
             return false
         }
 
-        ; socket should be open.
-;        txt.column(5)
-;        txt.print_uwhex(net.poll.socket[0], true)
-;        txt.nl()
-
-;        txt.column(5)
-;        txt.print("Sending gopher selector...")
-;        txt.nl()
-;        txt.column(5)
-;        txt.print(selector)
-;        txt.nl()
         ; send gopher request
         void socket.send_string(0, selector)
         void socket.send_byte(0, $0d)
         void socket.send_byte(0, $0a)
-;        txt.column(5)
-;        txt.print_uwhex(net.poll.socket[0], true)
-;        txt.nl()
+
         ; something worked... :)
         return true
     }
 
     sub handler(ubyte choice) -> ubyte {
         ; do something with current line
-        txt.row(40)
-        txt.column(0)
-        txt.print("Gopher request for: ")
-        txt.print(gopher.selectors[choice])
-        txt.chrout(' ')
-        txt.print(gopher.servers[choice])
-        txt.chrout(' ')
-        txt.print(gopher.ports[choice])
-        txt.print(" "*50)
-
         when types[choice] {
             TYPE_DIRECTORY -> {
                 if gopher.getmenu(choice) != 0 {
-                    txt.print("ERROR retrieving menu")
-                    txt.nl()
+                    term.statusline.print("ERROR retrieving menu")
                     ;hack
-                    gopher.lines = 0
+                    ;gopher.lines = 0
                 }
             }
             TYPE_FILE -> {
                 if getfile(choice) !=0 {
-                    txt.print("ERROR retrieving file")
-                    txt.nl()
+                    term.statusline.print("ERROR retrieving file")
+                    ;txt.print("ERROR retrieving file")
+                    ;txt.nl()
                 } else {
                     ; view text file..
-                    txt.clear_screen()
+                    term.clear()
                     showtext()
                 }
 
@@ -418,15 +331,11 @@ gopher {
 
         }
 
-        if gopher.lines == 0 {
-            txt.print("ERROR retrieving")
-            txt.nl()
-        }
-        ; debug
-        txt.nl()
-        txt.print_ubhex(gopher.lines, false)
-        txt.nl()
-
+        term.statusline.print("handler exit")
+;        if gopher.lines == 0 {
+;            txt.print("ERROR retrieving")
+;            txt.nl()
+;        }
         return 0
     }
 
@@ -445,13 +354,13 @@ gopher {
         main.getdata()
 
         ; debug
-        txt.nl()
-        txt.print("   getfile POS: ")
-        txt.print_uwhex(input.pos, false)
-        txt.nl()
-        txt.print("   getfile CNT: ")
-        txt.print_uwhex(input.cnt, false)
-        txt.nl()
+;        txt.nl()
+;        txt.print("   getfile POS: ")
+;        txt.print_uwhex(input.pos, false)
+;        txt.nl()
+;        txt.print("   getfile CNT: ")
+;        txt.print_uwhex(input.cnt, false)
+;        txt.nl()
 
         ; make sure we have some data
         if input.eof()
@@ -479,15 +388,6 @@ gopher {
         ; receive new data
         main.getdata()
 
-        ; debug
-        txt.nl()
-        txt.print("   getmenu POS: ")
-        txt.print_uwhex(input.pos, false)
-        txt.nl()
-        txt.print("   getmenu CNT: ")
-        txt.print_uwhex(input.cnt, false)
-        txt.nl()
-
         ; make sure we have some data
         if input.eof()
             return 1
@@ -507,7 +407,7 @@ gopher {
             if char == $0a {
                 txt.nl()
                 count++
-                if count > 20 {
+                if count > term.screen_height-4 {
                     txt.nl()
                     txt.print(" -= Press a key =- ")
                     void txt.waitkey()
@@ -518,18 +418,18 @@ gopher {
             txt.chrout(char)
         }
         txt.nl()
-        txt.print(" -= Press a key =- ")
+        txt.print(" -= Press a key to return to menu =- ")
         void txt.waitkey()
-        txt.clear_screen()
+        term.clear()
     }
 
 
     sub select_line(ubyte line) {
-        line_color(line, main.colors_selected)
+        line_color(line, term.colors_selected)
     }
 
     sub unselect_line(ubyte line) {
-        line_color(line, main.colors_normal)
+        line_color(line, term.colors_normal)
     }
 
     const ubyte dialog_topy = 1

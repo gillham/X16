@@ -14,13 +14,10 @@
 %import libnet
 %import socket
 %import stack
+%import term
 
 main {
     uword url = memory("url", 1 * 256, 256)
-
-    ; colors for gopher UI
-    const ubyte colors_normal = $b3
-    const ubyte colors_selected = $d0
 
     ; some defines for return codes
     const ubyte G_EXIT = $ff
@@ -32,30 +29,8 @@ main {
     ; stack index
     ubyte idx
 
-    ubyte screen_height
-    ubyte screen_mode
-    ubyte screen_width
-
     sub start() {
-        screen_mode, screen_width, screen_height = cx16.get_screen_mode()
-        ; init screen/colors
-        ;cx16.set_screen_mode(0)
-        ;cx16.set_screen_mode(8)
-        txt.lowercase()
-        txt.iso()
-        txt.color2(colors_normal & 15, colors_normal>>4)
-        txt.clear_screen()
-
-        ; debug
-        txt.column(5)
-        txt.print("Screen width: ")
-        txt.print_ub(screen_width)
-        txt.nl()
-        txt.column(5)
-        txt.print("Screen height: ")
-        txt.print_ub(screen_height)
-        txt.nl()
-
+        term.init()
 
         txt.column(5)
         txt.row(3)
@@ -96,7 +71,7 @@ main {
             ubyte choice = $00
 
             repeat {
-                txt.clear_screen()
+                term.clear()
                 txt.column(0)
                 txt.row(1)
                 gopher.menudraw()
@@ -177,11 +152,17 @@ main {
         ; start of buffer
         input.pos = 0
 
-        txt.column(4)
+        txt.nl()
+        txt.column(1)
         for m in 1 to 35 {
+            if input.eof()
+                break
             for n in 1 to 80 {
+                if input.eof()
+                    break
                 char = input.next()
                 when char {
+                    $00 -> txt.spc()
                     $09 -> txt.print("TAB")
                     $0a -> {
                         txt.print("LF")
@@ -196,14 +177,14 @@ main {
                 ;txt.chrout(' ')
             }
             txt.nl()
-            txt.column(4)
+            txt.column(1)
         }
         txt.nl()
-        txt.column(4)
+        txt.column(1)
         txt.print("POS: ")
         txt.print_uwhex(input.pos, false)
         txt.nl()
-        txt.column(4)
+        txt.column(1)
         txt.print("CNT: ")
         txt.print_uwhex(input.cnt, false)
         input.pos = 0
@@ -217,23 +198,28 @@ main {
 
         ; start of buffer
         input.pos = 0
-        txt.column(4)
+        txt.nl()
+        txt.column(1)
 
         for m in 1 to 20 {
+            if input.eof()
+                break
             for n in 1 to 20 {
+                if input.eof()
+                    break
                 char = input.next()
                 txt.print_ubhex(char, false)
                 txt.chrout(' ')
             }
             txt.nl()
-            txt.column(4)
+            txt.column(1)
         }
         txt.nl()
-        txt.column(4)
+        txt.column(1)
         txt.print("POS: ")
         txt.print_uwhex(input.pos, false)
         txt.nl()
-        txt.column(4)
+        txt.column(1)
         txt.print("CNT: ")
         txt.print_uwhex(input.cnt, false)
         input.pos = 0
@@ -252,17 +238,17 @@ main {
             if net.poll.socket[0] & net.SOCK_STAT_HAS_DATA == 0 {
                 ; no data & disconnected means we are done here..
                 if (net.poll.socket[0] & net.SOCK_STAT_CONNECTED) == 0 {
-                    txt.chrout('X')
                     break
                 }
                 ; send null for now to detect socket disconnect
                 ; fixed in next firmware.  cleanup eventually
                 void socket.send_byte(0, $00)
-                txt.chrout('N')
+                term.statusline.twiddle()
             } else {
                 input.cnt += socket.recv(0, 255, input.buf + input.cnt)
-                txt.chrout('D')
+                term.statusline.twiddle()
             }
         }
+        term.statusline.twiddleoff()
     }
 }
