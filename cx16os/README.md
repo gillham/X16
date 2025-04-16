@@ -1,6 +1,7 @@
 # CX16 OS app in Prog8
 
-Here is a minimal CX16 OS "Hello World" written in Prog8.
+Here some simple programs written for cx16os.  Including a minimal
+CX16 OS "Hello World" written in Prog8.
 
 The libraries/cx16os directory has syslib.p8, textio.p8, and similar libraries
 for the custom target.  The custom target is defined in the cx16os.properties file.
@@ -16,6 +17,32 @@ as shown below.
 
 ```bash
 prog8c -target cx16os.properties hello.p8
+```
+
+To use the simple cx16os examples just run `make` and they will be in build/.
+If you download the latest cx16os and unzip it here you will have an `OS` directory.
+You can then do `make run` to launch the `x16emu` command to boot cx16os.
+
+## Running examples
+
+Included in the examples are `arch`, `hello`, `pwd` (called `pwd8` when run), and `uname`.
+These are like their Linux/Unix counterparts except `hello` which just prints a "Hello World" style
+message.
+
+The `uname` command takes various arguments and prints information about the system.  Try `uname -a` to get all of the information available.
+
+Arguments:
+```
+    -a all available info
+    -b total banks / memory
+    -i hardware platform
+    -k kernal version
+    -m architecture
+    -o operating system
+    -p architecture
+    -r kernal version
+    -s SMC version
+    -v VERA version
 ```
 
 ## Developing with Prog8
