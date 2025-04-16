@@ -4,27 +4,29 @@ os {
     ; cx16os functions.
     extsub $9d00 = getc() clobbers(X, Y) -> ubyte @ A
     extsub $9d03 = chrout(ubyte character @ A)
-    extsub $9d06 = exec()
-    extsub $9d09 = print_str()
+    ; probably needs a wrapper
+    extsub $9d06 = exec(uword strargs @AX, ubyte argcount @Y) -> ubyte @A, ubyte @X
+    extsub $9d09 = print_str(str arg0 @AX)
     extsub $9db4 = get_console_info()
     extsub $9db7 = set_console_mode()
     extsub $9dba = set_stdin_read_mode()
-    extsub $9d0c = get_process_info()
-    extsub $9d0f = get_args() -> ubyte @Y, uword @AX
-    extsub $9d12 = get_process_name()
+    ; probably needs a wrapper
+    extsub $9d0c = get_process_info(ubyte proc @A, ubyte instance @X) -> ubyte @A, ubyte @X, ubyte @Y
+    extsub $9d0f = get_args() -> uword @AX, ubyte @Y
+    extsub $9d12 = get_process_name(uword buffer @AX, ubyte pid @Y, ubyte count @R0) -> uword @AX, ubyte @Y
     extsub $9da5 = active_table_lookup()
-    extsub $9d15 = parse_num()
+    extsub $9d15 = parse_num(uword numptr @AX) -> uword @AX, ubyte @Y
     extsub $9d99 = bin_to_bcd16()
-    extsub $9d18 = hex_num_to_string()
+    extsub $9d18 = hex_num_to_string(ubyte arg0 @A) -> ubyte @X, ubyte @A
 
-    extsub $9d1b = kill_process()
-    extsub $9d1e = open_file()
-    extsub $9d21 = close_file()
-    extsub $9d24 = read_file()
-    extsub $9d27 = write_file()
-    extsub $9d2a = load_dir_listing_extmem()
+    extsub $9d1b = kill_process(ubyte pid @A) -> ubyte @X, ubyte @A
+    extsub $9d1e = open_file(uword filename @AX, ubyte mode @Y) -> ubyte @A, ubyte @X
+    extsub $9d21 = close_file(ubyte fd @A)
+    extsub $9d24 = read_file(ubyte fd @A, uword offset @R0, uword count @R1, ubyte bank @R2) -> uword @AX, ubyte @Y
+    extsub $9d27 = write_file(ubyte fd @A, uword ptr @R0, uword count @R1) -> uword @AX, ubyte @Y
+    extsub $9d2a = load_dir_listing_extmem(ubyte bank @A) -> uword @AX
     extsub $9d2d = get_pwd(uword buffer @R0, uword count @R1)
-    extsub $9d30 = chdir()
+    extsub $9d30 = chdir(uword path @AX) -> ubyte @A
     extsub $9d9c = move_fd()
     extsub $9da8 = copy_fd()
     extsub $9dbd = pipe()
@@ -55,16 +57,17 @@ os {
 
     ; More system routines
 
-    extsub $9d5d = wait_process()
-    extsub $9d60 = fgetc()
-    extsub $9d63 = fputc()
-    extsub $9d66 = unlink()
-    extsub $9d69 = rename()
-    extsub $9d6c = copy_file()
-    extsub $9d6f = mkdir()
-    extsub $9d72 = rmdir()
+    extsub $9d5d = wait_process(ubyte pid @A) -> ubyte @A, ubyte @X
+    extsub $9d60 = fgetc(ubyte fd @X) -> ubyte @A, ubyte @X
+    extsub $9d63 = fputc(ubyte fd @X, ubyte data @A) -> ubyte @Y
+    extsub $9d66 = unlink(uword filename @AX) -> ubyte @A
+    extsub $9d69 = rename(uword source @R1, uword target @R0) -> ubyte @A
+    extsub $9d6c = copy_file(uword source @R1, uword target @R0) -> ubyte @A
+    extsub $9d6f = mkdir(uword path @AX) -> ubyte @A
+    extsub $9d72 = rmdir(uword path @AX) -> ubyte @A
 
-    extsub $9d9f = get_time()
+    ; needs wrapper
+    extsub $9d9f = get_time() -> uword @R0, uword @R1, uword @R2, uword @R3
     extsub $9dab = get_sys_info() -> ubyte @X, ubyte @Y, uword @R0, uword @R1, uword @R2
 
     extsub $9d75 = setup_chrout_hook()

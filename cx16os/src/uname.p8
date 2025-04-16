@@ -30,7 +30,7 @@ main {
         uword argv
         ubyte i
 
-        argc, argv = os.get_args()
+        argv, argc = os.get_args()
 
         numbanks, kernalver, void, void, void = os.get_sys_info()
         vera_major = cx16.r0L
