@@ -43,9 +43,6 @@ main {
         if argc > 1 {
             repeat argc {
                 if argv[0] == '-' {
-;                    txt.print("argument detected: ")
-;                    txt.chrout(argv[1])
-;                    txt.nl()
                     when argv[1] {
                         'a' -> arch = banks = hardware = opsys = kernal = vera = smc = true
                         'b' -> banks = true
@@ -59,8 +56,6 @@ main {
                     }
                 }
                 i = strings.length(argv)
-;                txt.print_ub(i)
-;                txt.nl()
                 argv += (i + 1) as uword
             }
         } else {
