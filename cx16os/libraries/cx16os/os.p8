@@ -10,7 +10,7 @@ os {
     extsub $9db7 = set_console_mode()
     extsub $9dba = set_stdin_read_mode()
     extsub $9d0c = get_process_info()
-    extsub $9d0f = get_args()
+    extsub $9d0f = get_args() -> ubyte @Y, uword @AX
     extsub $9d12 = get_process_name()
     extsub $9da5 = active_table_lookup()
     extsub $9d15 = parse_num()
@@ -28,6 +28,8 @@ os {
     extsub $9d9c = move_fd()
     extsub $9da8 = copy_fd()
     extsub $9dbd = pipe()
+    extsub $9dc0 = seek_file(ubyte fd @A, uword offsetl @R0, uword offseth @R1)
+    extsub $9dc3 = tell_file(ubyte fd @A) -> ubyte @A, uword @R0, uword @R1, uword @R2, uword @R3
 
     ; extmem routines
     extsub $9d33 = res_extmem_bank()
@@ -63,7 +65,7 @@ os {
     extsub $9d72 = rmdir()
 
     extsub $9d9f = get_time()
-    extsub $9dab = get_sys_info()
+    extsub $9dab = get_sys_info() -> ubyte @X, ubyte @Y, uword @R0, uword @R1, uword @R2
 
     extsub $9d75 = setup_chrout_hook()
     extsub $9d78 = release_chrout_hook()

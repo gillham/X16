@@ -6,3 +6,5 @@ media/
 OS/
 # Disk images / files for testing.
 test/
+# x16emu nvram file
+nvram.bin
