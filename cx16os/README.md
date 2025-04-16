@@ -1,14 +1,14 @@
 # CX16 OS app in Prog8
 
 Here some simple programs written for cx16os.  Including a minimal
-CX16 OS "Hello World" written in Prog8.
+cx16os "Hello World" written in Prog8.
 
 The libraries/cx16os directory has syslib.p8, textio.p8, and similar libraries
 for the custom target.  The custom target is defined in the cx16os.properties file.
 
 ## Building
 
-A CX16 OS program is just straight code with no two byte load address.  It should
+A cx16os program is just straight code with no two byte load address.  It should
 be assembled to $A300.  With the Prog8 compiler's external custom target support
 you can use the compiler builds from the official repository.  Either the jar file
 with `java -jar compiler.jar` or `prog8c` can be used to run the compiler.
