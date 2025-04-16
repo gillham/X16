@@ -44,45 +44,45 @@ cbm {
 ; CLEARSCR -> use txt.clear_screen
 ; HOMECRSR -> use txt.home or txt.plot
 
-extsub $FF81 = CINT() clobbers(A,X,Y)                           ; (alias: SCINIT) initialize screen editor and video chip, including resetting to the default color palette. Note: also sets the video mode back to VGA
-extsub $FF84 = IOINIT() clobbers(A, X)                          ; initialize I/O devices (CIA, IRQ, ...)
-extsub $FF87 = RAMTAS() clobbers(A,X,Y)                         ; initialize RAM, screen
-extsub $FF8A = RESTOR() clobbers(A,X,Y)                         ; restore default I/O vectors
-extsub $FF8D = VECTOR(uword userptr @ XY, bool dir @ Pc) clobbers(A,Y)     ; read/set I/O vector table
-extsub $FF90 = SETMSG(ubyte value @ A)                          ; set Kernal message control flag
-extsub $FF93 = SECOND(ubyte address @ A) clobbers(A)            ; (alias: LSTNSA) send secondary address after LISTEN
-extsub $FF96 = TKSA(ubyte address @ A) clobbers(A)              ; (alias: TALKSA) send secondary address after TALK
-extsub $FF99 = MEMTOP(uword address @ XY, bool dir @ Pc) -> uword @ XY, ubyte @A     ; read/set top of memory  pointer.   NOTE: on the Cx16 also returns the number of RAM memory banks in A!  Also see cx16.numbanks()
-extsub $FF9C = MEMBOT(uword address @ XY, bool dir @ Pc) -> uword @ XY     ; read/set bottom of memory  pointer
-extsub $FF9F = SCNKEY() clobbers(A,X,Y)                         ; scan the keyboard, also called  kbd_scan
-extsub $FFA2 = SETTMO(ubyte timeout @ A)                        ; set time-out flag for IEEE bus
-extsub $FFA5 = ACPTR() -> ubyte @ A                             ; (alias: IECIN) input byte from serial bus
-extsub $FFA8 = CIOUT(ubyte databyte @ A)                        ; (alias: IECOUT) output byte to serial bus
-extsub $FFAB = UNTLK() clobbers(A)                              ; command serial bus device to UNTALK
-extsub $FFAE = UNLSN() clobbers(A)                              ; command serial bus device to UNLISTEN
-extsub $FFB1 = LISTEN(ubyte device @ A) clobbers(A)             ; command serial bus device to LISTEN
-extsub $FFB4 = TALK(ubyte device @ A) clobbers(A)               ; command serial bus device to TALK
-extsub $FFB7 = READST() -> ubyte @ A                            ; read I/O status word  (use CLEARST to reset it to 0)
+;extsub $FF81 = CINT() clobbers(A,X,Y)                           ; (alias: SCINIT) initialize screen editor and video chip, including resetting to the default color palette. Note: also sets the video mode back to VGA
+;extsub $FF84 = IOINIT() clobbers(A, X)                          ; initialize I/O devices (CIA, IRQ, ...)
+;extsub $FF87 = RAMTAS() clobbers(A,X,Y)                         ; initialize RAM, screen
+;extsub $FF8A = RESTOR() clobbers(A,X,Y)                         ; restore default I/O vectors
+;extsub $FF8D = VECTOR(uword userptr @ XY, bool dir @ Pc) clobbers(A,Y)     ; read/set I/O vector table
+;extsub $FF90 = SETMSG(ubyte value @ A)                          ; set Kernal message control flag
+;extsub $FF93 = SECOND(ubyte address @ A) clobbers(A)            ; (alias: LSTNSA) send secondary address after LISTEN
+;extsub $FF96 = TKSA(ubyte address @ A) clobbers(A)              ; (alias: TALKSA) send secondary address after TALK
+;extsub $FF99 = MEMTOP(uword address @ XY, bool dir @ Pc) -> uword @ XY, ubyte @A     ; read/set top of memory  pointer.   NOTE: on the Cx16 also returns the number of RAM memory banks in A!  Also see cx16.numbanks()
+;extsub $FF9C = MEMBOT(uword address @ XY, bool dir @ Pc) -> uword @ XY     ; read/set bottom of memory  pointer
+;extsub $FF9F = SCNKEY() clobbers(A,X,Y)                         ; scan the keyboard, also called  kbd_scan
+;extsub $FFA2 = SETTMO(ubyte timeout @ A)                        ; set time-out flag for IEEE bus
+;extsub $FFA5 = ACPTR() -> ubyte @ A                             ; (alias: IECIN) input byte from serial bus
+;extsub $FFA8 = CIOUT(ubyte databyte @ A)                        ; (alias: IECOUT) output byte to serial bus
+;extsub $FFAB = UNTLK() clobbers(A)                              ; command serial bus device to UNTALK
+;extsub $FFAE = UNLSN() clobbers(A)                              ; command serial bus device to UNLISTEN
+;extsub $FFB1 = LISTEN(ubyte device @ A) clobbers(A)             ; command serial bus device to LISTEN
+;extsub $FFB4 = TALK(ubyte device @ A) clobbers(A)               ; command serial bus device to TALK
+;extsub $FFB7 = READST() -> ubyte @ A                            ; read I/O status word  (use CLEARST to reset it to 0)
 extsub $FFBA = SETLFS(ubyte logical @ A, ubyte device @ X, ubyte secondary @ Y)   ; set logical file parameters
 extsub $FFBD = SETNAM(ubyte namelen @ A, str filename @ XY)     ; set filename parameters
 extsub $FFC0 = OPEN() clobbers(X,Y) -> bool @Pc, ubyte @A       ; (via 794 ($31A)) open a logical file
 extsub $FFC3 = CLOSE(ubyte logical @ A) clobbers(A,X,Y)         ; (via 796 ($31C)) close a logical file
-extsub $FFC6 = CHKIN(ubyte logical @ X) clobbers(A,X) -> bool @Pc    ; (via 798 ($31E)) define an input channel
-extsub $FFC9 = CHKOUT(ubyte logical @ X) clobbers(A,X)          ; (via 800 ($320)) define an output channel
-extsub $FFCC = CLRCHN() clobbers(A,X)                           ; (via 802 ($322)) restore default devices
-extsub $9D00 = CHRIN() clobbers(X, Y) -> ubyte @ A   ; (via 804 ($324)) input a character (for keyboard, read a whole line from the screen) A=byte read.
-extsub $9D03 = CHROUT(ubyte character @ A)                           ; (via 806 ($326)) output a character
-extsub $FFD5 = LOAD(ubyte verify @ A, uword address @ XY) -> bool @Pc, ubyte @ A, uword @ XY     ; (via 816 ($330)) load from device
-extsub $FFD8 = SAVE(ubyte zp_startaddr @ A, uword endaddr @ XY) clobbers (X, Y) -> bool @ Pc, ubyte @ A       ; (via 818 ($332)) save to a device.  See also BSAVE
-extsub $FFDB = SETTIM(ubyte low @ A, ubyte middle @ X, ubyte high @ Y)      ; set the software clock
-extsub $FFDE = RDTIM() -> ubyte @ A, ubyte @ X, ubyte @ Y       ; read the software clock (in little endian order: A=lo,X=mid,Y=high) , however use RDTIM_safe() instead
-extsub $FFE1 = STOP() clobbers(X) -> bool @ Pz, ubyte @ A       ; (via 808 ($328)) check the STOP key (and some others in A)        also see STOP2
-extsub $FFE4 = GETIN() clobbers(X,Y) -> bool @Pc, ubyte @ A     ; (via 810 ($32A)) get a character      also see GETIN2
-extsub $FFE7 = CLALL() clobbers(A,X)                            ; (via 812 ($32C)) close all files
-extsub $FFEA = UDTIM() clobbers(A,X)                            ; update the software clock
-extsub $FFED = SCREEN() -> ubyte @ X, ubyte @ Y                 ; get size of text screen into X (columns) and Y (rows)
-extsub $FFF0 = PLOT(ubyte col @ Y, ubyte row @ X, bool dir @ Pc) clobbers(A) -> ubyte @ Y, ubyte @ X       ; read/set position of cursor on screen (Y=column, X=row).  Also see txt.plot
-extsub $FFF3 = IOBASE() -> uword @ XY                           ; read base address of I/O devices
+;extsub $FFC6 = CHKIN(ubyte logical @ X) clobbers(A,X) -> bool @Pc    ; (via 798 ($31E)) define an input channel
+;extsub $FFC9 = CHKOUT(ubyte logical @ X) clobbers(A,X)          ; (via 800 ($320)) define an output channel
+;extsub $FFCC = CLRCHN() clobbers(A,X)                           ; (via 802 ($322)) restore default devices
+;extsub $9D00 = CHRIN() clobbers(X, Y) -> ubyte @ A   ; (via 804 ($324)) input a character (for keyboard, read a whole line from the screen) A=byte read.
+extsub $9D03 = CHROUT(ubyte character @ A)                       ; output a character
+;extsub $FFD5 = LOAD(ubyte verify @ A, uword address @ XY) -> bool @Pc, ubyte @ A, uword @ XY     ; (via 816 ($330)) load from device
+;extsub $FFD8 = SAVE(ubyte zp_startaddr @ A, uword endaddr @ XY) clobbers (X, Y) -> bool @ Pc, ubyte @ A       ; (via 818 ($332)) save to a device.  See also BSAVE
+;extsub $FFDB = SETTIM(ubyte low @ A, ubyte middle @ X, ubyte high @ Y)      ; set the software clock
+;extsub $FFDE = RDTIM() -> ubyte @ A, ubyte @ X, ubyte @ Y       ; read the software clock (in little endian order: A=lo,X=mid,Y=high) , however use RDTIM_safe() instead
+;extsub $FFE1 = STOP() clobbers(X) -> bool @ Pz, ubyte @ A       ; (via 808 ($328)) check the STOP key (and some others in A)        also see STOP2
+extsub $9D00 = GETIN() clobbers(Y) -> bool @Pc, ubyte @ A        ; get a character      also see GETIN2
+;extsub $FFE7 = CLALL() clobbers(A,X)                            ; (via 812 ($32C)) close all files
+;extsub $FFEA = UDTIM() clobbers(A,X)                            ; update the software clock
+;extsub $FFED = SCREEN() -> ubyte @ X, ubyte @ Y                 ; get size of text screen into X (columns) and Y (rows)
+;extsub $FFF0 = PLOT(ubyte col @ Y, ubyte row @ X, bool dir @ Pc) clobbers(A) -> ubyte @ Y, ubyte @ X       ; read/set position of cursor on screen (Y=column, X=row).  Also see txt.plot
+;extsub $FFF3 = IOBASE() -> uword @ XY                           ; read base address of I/O devices
 
 ; ---- utility
 

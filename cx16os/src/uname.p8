@@ -17,7 +17,7 @@ main {
 
     ; system information
     ubyte numbanks
-    ubyte kernalver
+    byte kernalver
     ubyte vera_major
     ubyte vera_minor
     ubyte vera_patch
@@ -47,6 +47,7 @@ main {
                         'a' -> arch = banks = hardware = opsys = kernal = vera = smc = true
                         'b' -> banks = true
                         'i' -> hardware = true
+                        'k' -> kernal = true
                         'm' -> arch = true
                         'o' -> opsys = true
                         'p' -> arch = true
@@ -63,16 +64,12 @@ main {
         }
 
         if opsys txt.print("cx16os ")
-        if arch {
-            if cx16.cpu_is_65816()
-                txt.print("65816")
-            else
-                txt.print("65C02")
-            txt.spc()
-        }
         if kernal {
             txt.chrout('R')
-            txt.print_ub(kernalver)
+            txt.print_ub(abs(kernalver))
+            if kernalver < 0 {
+                txt.print(" (prerelease)")
+            }
             txt.spc()
         }
         if hardware {
@@ -106,6 +103,13 @@ main {
             txt.spc()
             txt.print_uw((numbanks as uword + 1) * 8)
             txt.print("KB")
+            txt.spc()
+        }
+        if arch {
+            if cx16.cpu_is_65816()
+                txt.print("65816")
+            else
+                txt.print("65C02")
             txt.spc()
         }
         txt.nl()

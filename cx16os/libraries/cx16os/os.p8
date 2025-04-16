@@ -68,7 +68,7 @@ os {
 
     ; needs wrapper
     extsub $9d9f = get_time() -> uword @R0, uword @R1, uword @R2, uword @R3
-    extsub $9dab = get_sys_info() -> ubyte @X, ubyte @Y, uword @R0, uword @R1, uword @R2
+    extsub $9dab = get_sys_info() -> ubyte @X, byte @Y, uword @R0, uword @R1, uword @R2
 
     extsub $9d75 = setup_chrout_hook()
     extsub $9d78 = release_chrout_hook()
