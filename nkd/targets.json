@@ -1,0 +1,33 @@
+{
+    "c64cc65": {
+        "toolchain": "cc65" ,
+        "tool_args": "",
+        "output_dir": "work/"
+    },
+    "c64tmpx": {
+        "toolchain": "tmpx" ,
+        "tool_args": "",
+        "output_dir": "work/"
+    },
+    "c64prog8": {
+        "toolchain": "prog8c" ,
+        "tool_args": "-quiet -quietasm -asmlist -plaintext -target c64",
+        "output_dir": "work/"
+    },
+    "cx16cc65": {
+        "toolchain": "cc65" ,
+        "tool_args": "",
+        "output_dir": "work/"
+    },
+    "cx16cl65": {
+        "toolchain": "cl65" ,
+        "tool_args": "-t cx16",
+        "output_dir": "work/"
+    },
+    "cx16prog8": {
+        "toolchain": "prog8c" ,
+        "xtool_args": "-quiet -quietasm -asmlist -plaintext -target cx16",
+        "tool_args": "-asmlist -plaintext -target cx16",
+        "output_dir": "work/"
+    }
+}
