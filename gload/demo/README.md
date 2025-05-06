@@ -1,0 +1,7 @@
+# demo files
+
+The two files here can be copied to media for your hardware
+or just used via the emulator.  It just demonstrates a working
+nonlinear file startup up. 
+
+It just prints some text, nothing too exiting, but you can see the loader output.
