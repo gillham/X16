@@ -33,7 +33,7 @@ Here is an example:
 ```
 
 Once this matches what you need, just run `make` to build `gload.prg` in the `build/`
-directory.`  Then copy `gload.prg` and your `game.non` or equivalent to storage on
+directory.  Then copy `gload.prg` and your `game.non` or equivalent to storage on
 your Commander X16 and you should be set.  Running `gload.prg` should load & start
 `game.non` or whatever you provided.
 
