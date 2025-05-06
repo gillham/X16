@@ -21,10 +21,13 @@ PCCARGS=-asmlist -target cx16 -out build/
 
 PROGS	= build/loader.bin build/gload.prg build/gloader.prg build/demo.prg
 
-all: build copy $(PROGS) emu
+all: build copy $(PROGS) build/demo.non emu
 
 build/demo.prg: src/demo.p8
 	$(PCC) $(PCCARGS) $<
+
+build/demo.non: build/demo.prg
+	python bin/mknon.py -u -i $< -o $@
 
 build/loader.bin: src/loader.p8
 	$(PCC) $(PCCARGS) $<
