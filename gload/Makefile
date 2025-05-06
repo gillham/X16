@@ -19,17 +19,20 @@ endif
 PCC=prog8c
 PCCARGS=-asmlist -target cx16 -out build/
 
-PROGS	= loader.bin gload.prg gloader.prg
+PROGS	= build/loader.bin build/gload.prg build/gloader.prg build/demo.prg
 
 all: build copy $(PROGS) emu
 
-loader.bin: src/loader.p8
+build/demo.prg: src/demo.p8
 	$(PCC) $(PCCARGS) $<
 
-gload.prg: src/gload.p8 src/libgload.p8 src/lib.p8
+build/loader.bin: src/loader.p8
 	$(PCC) $(PCCARGS) $<
 
-gloader.prg: src/gloader.p8 src/libgloader.p8
+build/gload.prg: src/gload.p8 src/libgload.p8 src/lib.p8
+	$(PCC) $(PCCARGS) $<
+
+build/gloader.prg: src/gloader.p8 src/libgloader.p8
 	$(PCC) $(PCCARGS) $<
 
 build:
