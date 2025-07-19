@@ -3,6 +3,11 @@ Commander X16 related.
 
 ## cx16os
 
+
+DEPRECATED: This has been moved to my
+[prog8targets repository](https://github.com/gillham/prog8targets)
+alongside several other custom targets.
+
 Simple test of compiling a cx16os program with Prog8.
 Includes an external target file for Prog8.
 
