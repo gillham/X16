@@ -1,5 +1,9 @@
 # CX16 OS app in Prog8
 
+
+DEPRECATED: This has been moved to my [prog8targets repository](https://github.com/gillham/prog8targets) alonside several other custom targets.
+
+
 Here some simple programs written for cx16os.  Including a minimal
 cx16os "Hello World" written in Prog8.
 
