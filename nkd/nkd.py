@@ -9,6 +9,7 @@ import os
 import shutil
 import socket
 import subprocess
+import threading
 
 HOST = "0.0.0.0"  # Standard loopback interface address (localhost)
 PORT = 8056  # Port to listen on (non-privileged ports are > 1023)
@@ -30,12 +31,7 @@ def process_file(lines, name, size, output_dir):
     file_len = 0
     file_name = os.path.basename(os.path.normpath(name))
 
-    try:
-        os.chdir(output_dir)
-    except Exception:
-        print(f"DEBUG: os.chdir failed: {output_dir}")
-
-    with open(file_name, "wb") as fileh:
+    with open(output_dir + os.sep + file_name, "wb") as fileh:
         for line in lines:
             blank_line = bool(line == b"")
             if last_blank and line == b">DONE":
@@ -84,6 +80,7 @@ def process(data, ipa):
     # default target
     target_name = "cx16prog8"
     target = targets.get(target_name)
+    client_name = "unknown"
     project_name = "undefined"
     output_dir = "error"
 
@@ -104,6 +101,12 @@ def process(data, ipa):
 
         # not in the process of skipping over a file
         # which means we can look for keywords
+        if line.startswith(b">CLIENT:"):
+            client_name = line.decode("utf8").split(":")[1]
+            print(f"Client name: {client_name}")
+            # skip to next line
+            continue
+
         if line.startswith(b">PROJECT:"):
             project_name = line.decode("utf8").split(":")[1]
             print(f"Project name: {project_name}")
@@ -117,7 +120,7 @@ def process(data, ipa):
             if target is None:
                 print(f"ERROR: uknown target: {target_name}")
             # cleanup output_dir now that we know the target
-            output_dir = output_prefix + target_name + "_" + project_name
+            output_dir = output_prefix + client_name + "_" + target_name + "_" + project_name
             output_dir = os.path.normpath(output_dir)
             if os.path.exists(output_dir):
                 try:
@@ -171,13 +174,16 @@ def process(data, ipa):
             tool_args = target.get("tool_args").replace("{{output}}", project_name)
             args = (target["toolchain"] + " " + tool_args).split()
             args.append(main_file)
-            result = subprocess.run(args, capture_output=True, text=True)
+            result = subprocess.run(
+                args, capture_output=True, cwd=output_dir, text=True
+            )
             if result.returncode == 0:
                 print("Toolchain succeeded")
                 response["status"] = "OK"
                 response["output"] = result.stdout
                 response["error"] = result.stderr
                 response["binary"] = project_name
+                response["output_dir"] = output_dir
             else:
                 print(f"Toolchain reports an error. ({result.returncode})")
                 print("==== stderr ====")
@@ -223,7 +229,8 @@ def serve(connection, address):
             connection.sendall(b"\r")
             connection.sendall(b">BINARY\r")
             filename = result["binary"]
-            filedata = open(filename, "rb").read()
+            output_dir = result.get("output_dir")
+            filedata = open(output_dir + os.sep + filename, "rb").read()
             connection.sendall(filedata)
         else:
             output = result["error"].encode("utf8").replace(b"\x0a", b"\x0d")
@@ -280,13 +287,16 @@ def main():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((HOST, PORT))
-            s.listen()
+            s.listen(5)
             print("Waiting for a client connection...")
-            conn, addr = s.accept()
-            serve(conn, addr)
-        except ConnectionResetError:
-            print("Connection closed by remote host...")
-            s.close()
+
+            while True:
+                conn, addr = s.accept()
+                client_handler = threading.Thread(target=serve, args=(conn, addr))
+                client_handler.start()
+        #        except ConnectionResetError:
+        #            print("Connection closed by remote host...")
+        #            s.close()
         except KeyboardInterrupt:
             print("Control-C pressed, cleaning up...")
             s.close()
