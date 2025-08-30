@@ -3,13 +3,12 @@
 Network Kompile Daemon (NKD) for retro computer toolchain offload
 with the 'nk' client.
 """
+import ipaddress
 import json
 import os
 import shutil
 import socket
 import subprocess
-#import sys
-#from pathlib import Path
 
 HOST = "0.0.0.0"  # Standard loopback interface address (localhost)
 PORT = 8056  # Port to listen on (non-privileged ports are > 1023)
@@ -19,7 +18,7 @@ targets = {}
 target_name = "cx16prog8"
 
 
-def process_file(lines, name, size):
+def process_file(lines, name, size, output_dir):
     """
     Processes a file by reading further in the stream and
     then writing it out to the output_dir
@@ -32,9 +31,9 @@ def process_file(lines, name, size):
     file_name = os.path.basename(os.path.normpath(name))
 
     try:
-        os.chdir(targets.get(target_name).get("output_dir"))
+        os.chdir(output_dir)
     except Exception:
-        print(f"DEBUG: os.chdir failed: {targets.get(target_name).get("output_dir")}")
+        print(f"DEBUG: os.chdir failed: {output_dir}")
 
     with open(file_name, "wb") as fileh:
         for line in lines:
@@ -63,7 +62,7 @@ def process_file(lines, name, size):
     return file_len
 
 
-def process(data):
+def process(data, ipa):
     """
     Process the data from the client
     """
@@ -78,9 +77,15 @@ def process(data):
     file_size = 0
     files_received = 0
 
+    # $PWD/output/7f000001_target_project
+    output_prefix = os.getcwd() + os.sep + "output" + os.sep + ipa + "_"
+
     response = {"status": "unknown", "output": "", "error": "", "binary": ""}
     # default target
-    target = targets.get("cx16prog8")
+    target_name = "cx16prog8"
+    target = targets.get(target_name)
+    project_name = "undefined"
+    output_dir = "error"
 
     data_list = data.splitlines()
     for index, line in enumerate(data_list):
@@ -112,16 +117,19 @@ def process(data):
             if target is None:
                 print(f"ERROR: uknown target: {target_name}")
             # cleanup output_dir now that we know the target
-            output_dir = "./" + targets.get(target_name).get("output_dir")
+            output_dir = output_prefix + target_name + "_" + project_name
             output_dir = os.path.normpath(output_dir)
             if os.path.exists(output_dir):
                 try:
                     print(f"DEBUG: removing old tree: {output_dir}")
                     shutil.rmtree(output_dir)
-                    os.mkdir(output_dir)
                 except Exception:
                     print(f"DEBUG: output_dir issue: {output_dir}")
 
+            try:
+                os.mkdir(output_dir)
+            except Exception as error:
+                print(f"DEBUG: mkdir(output_dir) issue: {output_dir} {error}")
             # skip to next line
             continue
 
@@ -136,7 +144,7 @@ def process(data):
             file_size = int(line.decode("utf8").split(":")[2])
             print(f"Main file name: {main_file}")
             print(f"Main file size: {file_size}")
-            process_file(data_list[index + 1 :], main_file, file_size)
+            process_file(data_list[index + 1 :], main_file, file_size, output_dir)
             files_received += 1
             # signal we want to skip over the file
             skip_file = True
@@ -148,7 +156,7 @@ def process(data):
             file_size = int(line.decode("utf8").split(":")[2])
             print(f"Extra file name: {file_name}")
             print(f"Extra file size: {file_size}")
-            process_file(data_list[index + 1 :], file_name, file_size)
+            process_file(data_list[index + 1 :], file_name, file_size, output_dir)
             files_received += 1
             # signal we want to skip over the file we just saved above
             skip_file = True
@@ -160,7 +168,8 @@ def process(data):
             if files_received != file_count:
                 print(f"WARNING: Missing files? {files_received} vs {file_count}")
             print("INFO: Toolchain (compile/assemble) stage requested.")
-            args = (target["toolchain"] + " " + target["tool_args"]).split()
+            tool_args = target.get("tool_args").replace("{{output}}", project_name)
+            args = (target["toolchain"] + " " + tool_args).split()
             args.append(main_file)
             result = subprocess.run(args, capture_output=True, text=True)
             if result.returncode == 0:
@@ -190,6 +199,7 @@ def serve(connection, address):
     """
     with connection:
         print("Connection from:", address)
+        ipa = ipaddress.ip_address(connection.getpeername()[0])
         newdata = b""
         # keep reading until we either see the compile request
         # or we stop reading any data.
@@ -203,7 +213,7 @@ def serve(connection, address):
                 print("DEBUG: blank data")
                 break
 
-        result = process(newdata)
+        result = process(newdata, ipa.packed.hex())
         connection.sendall(b"")
         if result["status"] == "OK":
             output = result["output"].encode("utf8").replace(b"\x0a", b"\x0d")
@@ -223,7 +233,6 @@ def serve(connection, address):
 
         # flush socket?
         connection.sendall(b"")
-    #return
 
 
 def readjson(filename):
