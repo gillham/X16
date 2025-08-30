@@ -1,4 +1,4 @@
-#!/Users/gillham/.local/share/virtualenvs/default/bin/python
+#!/usr/bin/env python
 """
 Network Kompile Daemon (NKD) for retro computer toolchain offload
 with the 'nk' client.
