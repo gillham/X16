@@ -10,6 +10,9 @@ debug = False
 # global logging flag.
 verbose = False
 
+# global flag for using the lowest byte/page first
+lowest = False
+
 
 def debuglog(message, end="\n"):
     if debug:
@@ -24,8 +27,10 @@ def logger(message, end="\n"):
 def prtrange(range_list):
     if debug:
         msg = "DEBUG: "
-    else:
+    elif verbose:
         msg = "VERBOSE: "
+    else:
+        msg = "PAGES: "
     logger(msg, end="")
     for item in range_list:
         logger(f"{item:02x} ", end="")
@@ -92,10 +97,16 @@ def findbyte(prog, pages):
     # loop through the list of ranges
     # starting at the top for convenience
     # find the first range == pages
-    for group in ranges_list[::-1]:
-        if len(group) >= pages:
-            prtrange(group)
-            return group[0]
+    if lowest:
+        for group in ranges_list:
+            if len(group) >= pages:
+                prtrange(group)
+                return group[0]
+    else:
+        for group in ranges_list[::-1]:
+            if len(group) >= pages:
+                prtrange(group)
+                return group[0]
 
     # did not find a byte range
     return 0
@@ -103,6 +114,7 @@ def findbyte(prog, pages):
 
 def main():
     global debug
+    global lowest
     global verbose
 
     parser = argparse.ArgumentParser(
@@ -113,10 +125,16 @@ def main():
 
     parser.add_argument("program")
     parser.add_argument(
-        "-a", "--auto", help="Auto update %address in Prog8 file to new file."
+        "-a", "--auto", help="Auto update *=$1000 in assembler file to new file."
     )
     parser.add_argument(
         "-d", "--debug", action="store_true", help="Show all found byte details."
+    )
+    parser.add_argument(
+        "-l", "--lowest", action="store_true", help="Use lowest available relocation byte."
+    )
+    parser.add_argument(
+        "-p", "--patch", help="Patch %address in Prog8 file to new file."
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Show relocation details."
@@ -125,6 +143,17 @@ def main():
     args = parser.parse_args()
     debug = args.debug
     verbose = args.verbose or args.debug
+    lowest = args.lowest
+    if args.auto and args.patch:
+        print("Only specify auto or patch, not both.")
+        sys.exit(1)
+
+    if args.auto:
+        updatefile = args.auto
+    elif args.patch:
+        updatefile = args.patch
+    else:
+        updatefile = None
 
     try:
         with open(args.program, "rb") as program:
@@ -141,29 +170,43 @@ def main():
     if reloc_byte == 0:
         sys.exit(1)
 
+    # provide feedback if no optional args
+    if not args.debug and not args.verbose:
+        print(f"Assemble at address ${reloc_byte:02x}00")
+
     # should perform actual relocation here...
-    if args.auto:
-        logger(f"args.auto: {args.auto}")
-        file_ext = args.auto.split(".")[-1]
-        filename = args.auto.split("." + file_ext)[0]
+    if updatefile:
+        logger(f"updatefile: {updatefile}")
+        file_ext = updatefile.split(".")[-1]
+        filename = updatefile.split("." + file_ext)[0]
         file_reloc = f"{filename}_reloc.{file_ext}"
         logger(f"filename: {filename}")
         logger(f"file_ext: {file_ext}")
         logger(f"file_reloc: {file_reloc}")
         try:
-            with open(args.auto, "r") as inf:
+            with open(updatefile, "r") as inf:
                 input_file = inf.readlines()
 
             with open(file_reloc, "w") as outf:
                 for line in input_file:
-                    if re.match(r"\%address\s+\$1000", line):
-                        logger("found:", line)
-                        line = re.sub(
-                            r"(\%address\s+\$)(10)(.*)",
-                            r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
-                            line,
-                        )
-                        logger("fixed:", line)
+                    if args.patch:
+                        if re.match(r"^(\s*\%address\s+\$)(10)(.*)", line):
+                            logger("found:", line)
+                            line = re.sub(
+                                r"^(\s*\%address\s+\$)(10)(.*)",
+                                r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
+                                line,
+                            )
+                            logger("fixed:", line)
+                    else:
+                        if re.match(r"^(\s*\*=\s*\$)(10)(.*)", line):
+                            logger("found:", line)
+                            line = re.sub(
+                                r"^(\s*\*=\s*\$)(10)(.*)",
+                                r"\g<1>" + f"{reloc_byte:02x}" + r"\g<3>",
+                                line,
+                            )
+                            logger("fixed:", line)
                     outf.write(line)
         except FileNotFoundError as error:
             print(error, file=sys.stderr)

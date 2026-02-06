@@ -19,7 +19,7 @@ build/%.prg : src/%.p8
 	$(PCC) $(PCCARGS) $< 
 
 src/%_reloc.p8: src/%.p8 build/%.prg
-	bin/reloc8 -v build/$(basename $(notdir $<)).bin -a $<
+	bin/reloc8 -v build/$(basename $(notdir $<)).bin -p $<
 
 build/%.r : src/%_reloc.p8
 	$(PCC) $(PCCARGS) $< 
