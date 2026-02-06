@@ -171,7 +171,7 @@ def main():
         sys.exit(1)
 
     # provide feedback if no optional args
-    if not args.debug and not args.verbose:
+    if not args.debug and not args.verbose and not updatefile:
         print(f"Assemble at address ${reloc_byte:02x}00")
 
     # should perform actual relocation here...
@@ -208,6 +208,7 @@ def main():
                             )
                             logger("fixed:", line)
                     outf.write(line)
+            print(f"Created {file_reloc} with address ${reloc_byte:02x}00")
         except FileNotFoundError as error:
             print(error, file=sys.stderr)
             sys.exit(1)
