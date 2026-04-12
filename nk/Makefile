@@ -15,6 +15,8 @@ else
     MD = mkdir -p
 endif
 
+#PCC=prog8c-11.3.2
+#PCC=prog8c-stable
 PCC=prog8c
 PCCARGS=-asmlist -target cx16 -out build/
 
@@ -31,7 +33,7 @@ net:
 release:
 	$(CP) build/main.prg binary/nk
 
-build/main.prg: src/main.p8 src/libnet.p8 src/lib.p8 src/socket.p8
+build/main.prg: src/main.p8 src/libnet.p8 src/lib.p8 src/socket.p8 src/strncmp.p8
 	$(PCC) $(PCCARGS) $< 
 
 build/%.prg : src/%.p8

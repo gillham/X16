@@ -12,6 +12,9 @@
 %import libnet
 %import socket
 
+; hacks
+%import strncmp
+
 main {
     const uword bufsize = 8 * 256
     uword cfgbuf = memory("cfg", bufsize, 256)
@@ -20,7 +23,8 @@ main {
     uword bufptr
 
     ; file buffer
-    const uword filebufsize = 20000
+    ;const uword filebufsize = 20000
+    const uword filebufsize = 19712
     uword filebuf = memory("file", filebufsize, 256)
     uword filesize
 
@@ -216,7 +220,8 @@ main {
         void socket.send_byte(0, $0a)
 
         ; send a blank line prior to ">DONE"
-        void socket.send_byte(0, $0a)
+        ; FIXME: this is causing an extra linefeed in the file.
+        ;void socket.send_byte(0, $0a)
 
         ; ">DONE" marker for file
         void socket.send_string(0, done)
@@ -263,11 +268,11 @@ main {
         void socket.send_string(0, compile)
         void socket.send_byte(0, $0a)
 
-        txt.print("File sent, waiting (2 seconds) for compile...")
+        txt.print("File sent, waiting (5 seconds) for compile...")
         txt.nl()
 
-        ; delay 2 seconds
-        sys.wait(120)
+        ; delay 5 seconds
+        sys.wait(300)
 
         ; read responses
         getdata()
@@ -297,6 +302,8 @@ main {
             }
             if strings.ncompare(iso:">BINARY", line, 7) == 0 {
                 txt.print("Binary received...")
+                ; debug
+                txt.print(line)
                 txt.nl()
                 ; txt.print("recvbufptr: ")
                 ; txt.print_uw(recvbufptr)
@@ -314,6 +321,8 @@ main {
                 }
                 void file_write(binary, recvbuf + recvbufptr, recvsize - recvbufptr)
                 socket.close(0)
+                txt.print("socket closed")
+                txt.nl()
                 sys.exit(0)
             }
             ; output lines from '>OUTPUT' or '>ERROR' etc
@@ -327,6 +336,8 @@ main {
         txt.nl()
 
         socket.close(0)
+        txt.print("socket closed")
+        txt.nl()
     }
 
     ; copy a string from one to another converting to ascii
@@ -498,6 +509,9 @@ main {
             }
             i++
         }
+        ;return 0  ; FIXME
+        ;return i-1  ; FIXME
+        return i ; FIXME
     }
 
     ; read the next line into the temp buffer
@@ -517,6 +531,9 @@ main {
             }
             i++
         }
+        ;return 0  ; FIXME
+        ;return i-1  ; FIXME
+        return i ; FIXME
     }
 
     ; convert ascii byte to petscii byte
@@ -581,7 +598,12 @@ main {
             } else {
                 recvsize += socket.recv(0, 255, recvbuf + recvsize)
             }
+        txt.chrout('.')
+        ;txt.print("DEBUG: getdata recvsize: ")
+        ;txt.print_uw(recvsize)
+        ;txt.nl()
         }
+        txt.nl()
     }
 
 }
