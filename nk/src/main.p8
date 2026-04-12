@@ -52,6 +52,7 @@ main {
     str project = " " * 30          ; ">PROJECT:filename" (16 char max filename)
     str files   = " " * 10          ; ">FILES:NN"
     ubyte filecount                 ; the number of files above
+    str client  = " " * 30          ; ">CLIENT:username"
     str source  = " " * 30          ; ">MAIN:filename" (16 char max filename)
     str target  = " " * 30          ; ">TARGET:cx16prog8"
     str sourcefile  = " " * 17      ; filename from above
@@ -67,6 +68,9 @@ main {
 
         txt.print("Network Kompile")
         txt.nl()
+
+        ; set client to unknown by default
+        void strings.copy(">CLIENT:unknown", client)
 
         ; needs better error checking
         uword count = read_file(cfgfile, cfgbuf, bufsize)
@@ -113,6 +117,9 @@ main {
                 void strings.copy(&line, project)
                 ; copy & convert entire line
                 ; ascii_copy(&line, project, strings.length(&line))
+            }
+            if strings.ncompare(">CLIENT:", line, 8) == 0 {
+                void strings.copy(&line, client)
             }
             if strings.ncompare(">TARGET:", line, 8) == 0 {
                 void strings.copy(&line, target)
@@ -200,6 +207,10 @@ main {
 
         ; project line (with compiled binary name)
         void socket.send_string(0, project)
+        void socket.send_byte(0, $0a)
+
+        ; client line (with user/system name)
+        void socket.send_string(0, client)
         void socket.send_byte(0, $0a)
 
         ; target line (with platform/toolchain)
